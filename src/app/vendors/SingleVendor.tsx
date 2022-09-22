@@ -132,6 +132,7 @@ export default function SingleVendor({ account }: { account: DestinyAccount }) {
   let displayName = d2Vendor.def.displayProperties.name;
   let displayDesc = d2Vendor.def.displayProperties.description;
   let artifactCheck: string | undefined;
+  let artifactAssets: { screenshot: string } | undefined;
 
   // if this vendor is the seasonal artifact
   if (vendorDef.displayCategories.find((c) => c.identifier === 'category_reset')) {
@@ -142,6 +143,13 @@ export default function SingleVendor({ account }: { account: DestinyAccount }) {
         // belongs to the current season,                         and looks like an artifact
         i.seasonHash === seasonHash && /\.artifacts?\./.test(i.inventory!.stackUniqueLabel ?? '')
     )?.displayProperties;
+
+    artifactAssets = Object.values(defs.InventoryItem.getAll()).find(
+      (i) =>
+        // belongs to the current season,                         and looks like an artifact
+        i.seasonHash === seasonHash && /\.artifacts?\./.test(i.inventory!.stackUniqueLabel ?? '')
+    );
+
     if (artifactDisplay) {
       displayName = artifactDisplay.name;
       displayDesc = artifactDisplay.description;
@@ -155,13 +163,23 @@ export default function SingleVendor({ account }: { account: DestinyAccount }) {
   }
 
   return (
-    <div className={clsx(styles.page, 'dim-page', artifactCheck)}>
+    <div
+      style={
+        artifactCheck
+          ? {
+              backgroundImage: `url(https://www.bungie.net${artifactAssets?.screenshot})`,
+              backgroundSize: 'cover',
+            }
+          : undefined
+      }
+      className={clsx(styles.page, 'dim-page', artifactCheck)}
+    >
       <ErrorBoundary name="SingleVendor">
         <div className={styles.featuredHeader}>
           <h1>
             {displayName} <VendorLocation>{placeString}</VendorLocation>
           </h1>
-          <div>{displayDesc}</div>
+          {artifactCheck ? <div>ARTIFACT</div> : <div>{displayDesc}</div>}
           {refreshTime && (
             <div>
               {t('Vendors.RefreshTime')} <Countdown endTime={refreshTime} />
